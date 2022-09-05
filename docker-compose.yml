@@ -1,0 +1,23 @@
+version: '3'
+services:
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: chat_api/api
+    container_name: springboot_chat_api
+    ports:
+      - "8080:8080"
+      - "5005:5005"
+    environment:
+      - ADDITIONAL_OPTS=-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:5005 -Xmx1G -Xms128m -XX:MaxMetaspaceSize=128m
+      - H2CONSOLE=-web -webAllowOthers -tcp -tcpAllowOthers -browser
+      - PROFILE=dev
+    depends_on:
+      - rabbitmq
+  rabbitmq:
+    image: rabbitmq:3-management
+    container_name: rabbitmq_chat_api
+    ports:
+      - "5672:5672"
+      - "15672:15672"
