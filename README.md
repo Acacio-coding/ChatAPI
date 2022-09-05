@@ -20,13 +20,18 @@ git clone https://github.com/Acacio-coding/ChatAPI
 Agora siga os seguintes passos:
 
 1. Abra o projeto com a IDE, editor de código ou terminal de sua preferência
-2. Utilize o <i><b>lifecycle</b></i> do maven para compilar e gerar os arquivos necessários com o comando:
+2. Gere e inicie o container do RabbitMQ no Docker através do comando:
 ```
-mvn clean install
+docker-compose up --build --force-recreate -d
 ```
-3. Gere e inicie os containers no Docker através do comando:
-```
-docker-compose up --build --force-recreate
-```
+3. Realize um build na aplicação e execute a mesma a partir da classe <b>ChatApiApplication</b>
 
-<b>Obs</b>.: vale lembrar que o projeto está utilizando o <b>H2 Database</b> em memória, portanto nenhum dado ficará salvo após o encerramento da aplicação.
+<b>Obs</b>.: vale lembrar que o projeto está utilizando o <b>H2 Database</b> em memória, portanto nenhum dado ficará
+salvo após o encerramento da aplicação.
+
+## Comandos úteis
+
+- Para parar o container do RabbitMQ:
+ ```
+docker-compose down
+```
