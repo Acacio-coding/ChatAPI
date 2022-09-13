@@ -8,10 +8,10 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.beans.BeanUtils;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
-
 import javax.transaction.Transactional;
 
 import static com.ifsc.chatapi.utils.constants.EndPoints.*;
+import static com.ifsc.chatapi.utils.constants.MQConstants.USER_QUEUE_BASE;
 import static com.ifsc.chatapi.utils.constants.ValidationMessages.*;
 
 @Service
@@ -20,9 +20,10 @@ import static com.ifsc.chatapi.utils.constants.ValidationMessages.*;
 public class UserServiceImplementation implements UserService {
 
     private final UserRepository userRepository;
+    private final RabbitMQService rabbitMQService;
 
     @Override
-    public UserDTO get(String username) {
+    public UserModel get(String username) {
         var user = this.userRepository.findByUsername(username);
 
         if (user == null) {
@@ -32,14 +33,11 @@ public class UserServiceImplementation implements UserService {
                     BASE_ENDPOINT + USER_BASE_ENDPOINT + USER_GET_ENDPOINT);
         }
 
-        var toReturn = new UserDTO();
-        BeanUtils.copyProperties(user, toReturn);
-
-        return toReturn;
+        return user;
     }
 
     @Override
-    public UserDTO create(UserDTO userDTO) {
+    public UserModel create(UserDTO userDTO) {
         if (this.userRepository.existsByUsername(userDTO.getUsername())) {
             throw new ValidationException(
                     HttpStatus.CONFLICT,
@@ -52,11 +50,14 @@ public class UserServiceImplementation implements UserService {
 
         this.userRepository.save(newUser);
 
-        return userDTO;
+        String queueName = USER_QUEUE_BASE + newUser.getId();
+        this.rabbitMQService.createQueue(queueName);
+
+        return newUser;
     }
 
     @Override
-    public UserDTO update(String username, UserDTO userDTO) {
+    public UserModel update(String username, UserDTO userDTO) {
         var user = this.userRepository.findByUsername(username);
 
         if (user == null) {
@@ -66,16 +67,23 @@ public class UserServiceImplementation implements UserService {
                     BASE_ENDPOINT + USER_BASE_ENDPOINT + USER_UPDATE_ENDPOINT);
         }
 
+        if (this.userRepository.existsByUsername(userDTO.getUsername())) {
+            throw new ValidationException(
+                    HttpStatus.CONFLICT,
+                    USERNAME_ALREADY_TAKEN,
+                    BASE_ENDPOINT + USER_BASE_ENDPOINT + USER_CREATION_ENDPOINT);
+        }
+
         user.setUsername(userDTO.getUsername());
         user.setPassword(userDTO.getPassword());
 
         this.userRepository.save(user);
 
-        return userDTO;
+        return user;
     }
 
     @Override
-    public UserDTO delete(String username) {
+    public UserModel delete(String username) {
         var user = this.userRepository.findByUsername(username);
 
         if (user == null) {
@@ -87,9 +95,9 @@ public class UserServiceImplementation implements UserService {
 
         this.userRepository.delete(user);
 
-        var toReturn = new UserDTO();
-        BeanUtils.copyProperties(user, toReturn);
+        String queueName = USER_QUEUE_BASE + user.getId();
+        this.rabbitMQService.deleteQueue(queueName);
 
-        return toReturn;
+        return user;
     }
 }

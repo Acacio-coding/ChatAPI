@@ -1,6 +1,7 @@
 package com.ifsc.chatapi.controller;
 
 import com.ifsc.chatapi.dto.UserDTO;
+import com.ifsc.chatapi.model.UserModel;
 import com.ifsc.chatapi.service.UserServiceImplementation;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -20,23 +21,23 @@ public class UserController {
     private final UserServiceImplementation userService;
 
     @GetMapping(USER_GET_ENDPOINT)
-    public ResponseEntity<UserDTO> get(@PathVariable(value = USERNAME) String username) {
+    public ResponseEntity<UserModel> get(@PathVariable(value = USERNAME) String username) {
         return ResponseEntity.status(HttpStatus.OK).body(this.userService.get(username));
     }
 
     @PostMapping(USER_CREATION_ENDPOINT)
-    public ResponseEntity<UserDTO> create(@RequestBody @Validated UserDTO userDTO) {
+    public ResponseEntity<UserModel> create(@RequestBody @Validated UserDTO userDTO) {
         return ResponseEntity.status(HttpStatus.CREATED).body(this.userService.create(userDTO));
     }
 
     @PutMapping(USER_UPDATE_ENDPOINT)
-    public ResponseEntity<UserDTO> update(@PathVariable(value = USERNAME) String username,
+    public ResponseEntity<UserModel> update(@PathVariable(value = USERNAME) String username,
                                           @RequestBody @Validated UserDTO userDTO) {
         return ResponseEntity.status(HttpStatus.OK).body(this.userService.update(username, userDTO));
     }
 
     @DeleteMapping(USER_DELETE_ENDPOINT)
-    public ResponseEntity<UserDTO> delete(@PathVariable(value = USERNAME) String username) {
+    public ResponseEntity<UserModel> delete(@PathVariable(value = USERNAME) String username) {
         return ResponseEntity.status(HttpStatus.OK).body(this.userService.delete(username));
     }
 }
